@@ -1,29 +1,84 @@
 package pl.sda.parser;
 
-import javafx.scene.shape.Path;
-
 import java.io.IOException;
 import java.nio.file.Files;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.nio.Path;
-import java.nio.Paths;
-
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.*;
 
 public class Parser {
 
-    private Path file = Path.get("file.csv");
+    private Path file = Paths.get("file.csv"); //plik do przetwarzania
 
-    public List<RealEstate> readfile() throws IOException {
-        byte[] data = Files.readAllBytes(files);
-        String convertData = new String(data);
-        String[] dataArray = convertData.split("\r");
+    public List<RealEstate> readFile() throws IOException {
+        byte[] data = Files.readAllBytes(file);
+        String convertData = new String(data); // od tego momentu plik file jest odczytywany jako lista danych RealEstate ?
+        String[] dataArray = new String(data).split("\r");
         List<String> dataList = new ArrayList<>(Arrays.asList(dataArray));
+        dataList.remove(0);
 
-        for (String line: dataArray){
-            System.out.println(line);
+        List<RealEstate> realEstatesList = new ArrayList<>();
+
+        for (String line: dataList){
+            String[] lineArray = line.split(",");
+            RealEstate realEstate = new RealEstate();
+            realEstate.setStreet(lineArray[0]);
+            realEstate.setCity(lineArray[1]);
+            realEstate.setZip(Integer.parseInt(lineArray[2]));
+            realEstate.setState(lineArray[3]);
+            realEstate.setBeds(Integer.parseInt(lineArray[4]));
+            realEstate.setBaths(Integer.parseInt(lineArray[5]));
+            realEstate.setSquareFt(Integer.parseInt(lineArray[6]));
+            realEstate.setType(lineArray[7]);
+            realEstate.setSaleDate(lineArray[8]);
+            realEstate.setPrice(Integer.parseInt(lineArray[9]));
+            realEstate.setLat(Float.parseFloat(lineArray[10]));
+            realEstate.setLot(Float.parseFloat(lineArray[11]));
+
+            realEstatesList.add(realEstate);
         }
-        return null;
+
+        // powyższy kod pozwala na wyswietlanie danych w wymaganym porządku/kolejności - "\r"
+
+
+        return  realEstatesList;
     }
+
+    public Map<String, List<RealEstate>> City(List<RealEstate> realEstates) {
+        Map<String, List<RealEstate>> listMap = new HashMap<>();
+
+        List<String> cityList = new ArrayList<String>();
+
+        for (RealEstate re : realEstates) {  //wyświetl Stringa miasto jeżeli jest w pliku
+            if(!cityList.contains(re.getCity()))
+                cityList.add(re.getCity());
+        }
+
+        for (String city : cityList) { //dopasuj do danego miasta liczbę nieruchomości ??
+            List<RealEstate> cityRealEstates = new ArrayList<>();
+            for (RealEstate re: realEstates) {
+                if (city.equals(re.getCity()))
+                    cityRealEstates.add(re);
+            }
+            listMap.put(city, cityRealEstates);
+        }
+        return listMap;
+    }
+    public Map<String, Integer> countByCity(List<RealEstate> realEstates) { // dla danego miasta dpasuj kolejno ceny danych nieruchomości
+        Map<String, Integer> listMap = new HashMap<>();
+        for (RealEstate re : realEstates) {
+            if (listMap.containsKey(re.getCity())) {
+                int value = listMap.get(re.getCity()) + 1;
+                listMap.put(re.getCity(), value);
+            }
+            else
+                listMap.put(re.getCity(), 1);
+        }
+
+        return listMap;
+    }
+
+
 }
+
+
